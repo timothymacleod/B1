@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 
 st.title('Alzheimer’s Diagnostic Billing Pathfinder (Enhanced Prototype)')
 
@@ -28,42 +29,33 @@ mri = st.checkbox('Brain MRI (70551 - requires documentation of cognitive declin
 st.header('Step 4: Follow-up and Advance Care Planning')
 follow_up_acp = st.checkbox('Advance Care Planning (99497 - requires min. 16 mins documented discussion)')
 
-st.header('Generated CPT Code Bundle')
-codes = []
+st.header('Generated CPT Code Bundle and Requirements')
+cpt_data = []
 
 if 'Annual Wellness' in visit_type:
-    codes.append('G0438/G0439')
+    cpt_data.append(['Annual Wellness Visit', 'G0438/G0439', 'PCP, NP', 'N/A', 'Standard AWV components documented'])
 else:
-    codes.append('99214')
+    cpt_data.append(['Moderate complexity E/M', '99214', 'PCP, NP', '30-39 mins or moderate MDM', 'MDM or time clearly documented'])
 
 if brief_test:
-    codes.append('96127')
+    cpt_data.append(['Brief Cognitive Screening', '96127', 'PCP, NP, Psychologist', 'Brief (~5 mins)', 'Standard cognitive screening instruments (e.g., MMSE, MoCA)'])
 
 if assessment_choice == 'Cognitive Care Planning (99483)':
-    codes.append('99483')
+    cpt_data.append(['Cognitive Care Planning', '99483', 'PCP, NP', '50 mins', 'Caregiver presence, comprehensive cognitive testing, functional & safety assessment, medication review, detailed care plan'])
 else:
-    codes.append('99214/99215')
+    cpt_data.append(['Standard E/M Visit', '99214/99215', 'PCP, NP', '30-54 mins or moderate/high MDM', 'MDM or total time clearly documented'])
 
 if cmp:
-    codes.append('80053')
+    cpt_data.append(['Comprehensive Metabolic Panel', '80053', 'PCP, NP', 'N/A', 'Lab order documented'])
 
 if mri:
-    codes.append('70551')
+    cpt_data.append(['Brain MRI', '70551', 'PCP, NP', 'N/A', 'Clear documentation of cognitive decline for medical necessity'])
 
 if follow_up_acp:
-    codes.append('99497')
+    cpt_data.append(['Advance Care Planning', '99497', 'PCP, NP', '16 mins minimum', 'Discussion of care goals, patient consent clearly documented'])
 
-if st.button('Show CPT Codes & Documentation Notes'):
-    st.subheader('Recommended CPT Codes:')
-    for code in codes:
-        st.write(f'- {code}')
+cpt_df = pd.DataFrame(cpt_data, columns=['Service', 'CPT Code', 'Who Can Bill', 'Time/MDM Requirements', 'Documentation & Instruments'])
 
-    st.subheader('Important Documentation Tips & Constraints:')
-    if '99483' in codes:
-        st.write('- 99483: Caregiver must be present; document cognitive testing, functional & safety assessment, medication review, detailed care plan.')
-    if '70551' in codes:
-        st.write('- 70551 (MRI): Must clearly document cognitive decline to justify imaging.')
-    if '99497' in codes:
-        st.write('- 99497 (Advance Care Planning): Document at least 16 min discussion with patient consent.')
-    if '99214' in codes and 'Annual Wellness' not in visit_type:
-        st.write('- 99214: Document moderate complexity medical decision making or 30-39 minutes of total time spent.')
+if st.button('Show CPT Codes & Requirements Chart'):
+    st.subheader('Recommended CPT Codes and Billing Requirements:')
+    st.table(cpt_df)
